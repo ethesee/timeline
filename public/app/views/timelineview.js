@@ -1,5 +1,6 @@
 define([
   'jquery',
+  'jquery-ui',
   'underscore',
   'backbone',
   'dispatcher',
@@ -7,7 +8,7 @@ define([
   'moment',
   'text!templates/timelinetemplate.html'
   //'text!templates/serviceTemplate.html'
-], function($,_, Backbone, dispatcher,sapp,moment,timelineTemplate) {
+], function($,jqueryui,_, Backbone, dispatcher,sapp,moment,timelineTemplate) {
 // This view turns a Service model into HTML
 	var TimelineView = Backbone.View.extend({
 		//tagName: 'li',
@@ -31,10 +32,7 @@ define([
 		},
 
 		render: function(){
-			console.log("render called in timelineview")
 
-			
-			
             var tmpl = _.template(this.template);
             if ( this.model.get('id')){
             	console.log("JSON:", this.model.toJSON());
@@ -71,6 +69,7 @@ define([
 				    }, callback);
 				};
 
+			
 			// var min = new Date(2016, 3, 1); // 1 april
 			// var max = new Date(2016, 3, 30, 23, 59, 59); // 30 april
 			var objectTimeline = this.model.get('timeline');
@@ -91,26 +90,41 @@ define([
 				return min;
 			},this);
 
+			// var timelineMaximum = _.bind(function(){
+			// 	objectTimeline = this.model.get('timeline');
+			// 	var maxi = moment().add(30,'days');
+
+			// 	for(var i=0; i < objectTimeline.length; i++){
+			// 		if ( objectTimeline[i].end ){
+			// 			//see if date is lower than current min
+			// 			var nend = moment(objectTimeline[i].end);
+			// 			if ( nend.isAfter(maxi) ){
+			// 				maxi = nend;
+			// 			}
+			// 		}
+			// 	}
+			// 	return maxi;
+			// },this);
+
 			var timelineMaximum = _.bind(function(){
 				objectTimeline = this.model.get('timeline');
-				var maxi = moment().add(30,'days');
+				var max = moment();
 
 				for(var i=0; i < objectTimeline.length; i++){
 					if ( objectTimeline[i].end ){
 						//see if date is lower than current min
-						var nend = moment(objectTimeline[i].end);
-						if ( nend.isAfter(maxi) ){
-							maxi = nend;
+						var end = moment(objectTimeline[i].end);
+						if ( end.isAfter(max) ){
+							max = end;
 						}
 					}
 				}
-				return maxi;
+				return max;
 			},this);
 
 			var min = timelineMinimum(); //moment();
 			var max = timelineMaximum();//moment().add(30,'days');
 
-		
 			var updateTimeline = _.bind(function(item){
 				console.log("trigger pulled");
 				// dispatcher.trigger("timeline",{id: this.model.get('_id'), item: item});
@@ -151,11 +165,27 @@ define([
 						});
 			},this);
 
+			var prettyInput = function(title, text, inputValue, callback) {
+					$("#dialog").css({display: true})
+					$("#dialog").dialog({
+						modal: true,
+						close: function(){
+							callback("foo bar");
+						}
+					})
+					
+				    
+				};
+
 			var options = {
-	
+				start: '2016-01-10',
+    			end: '2016-12-10',
+    			showCurrentTime: true,
 			    editable: true,
 
+
 			    onAdd: function (item, callback) {
+			    	console.log("item")
 			      prettyPrompt('Add item', 'Enter text content for new item:', item.content, function (value) {
 			        if (value) {
 			          item.content = value;
@@ -194,16 +224,32 @@ define([
 
 			    onUpdate: function (item, callback) {
 			      
-			      prettyPrompt('Update item', 'Edit items text:', item.content, function (value) {
-			        if (value) {
-			          item.content = value;
-			          updateTimeline(item);
-			          callback(item); // send back adjusted item
-			        }
-			        else {
+			      // prettyPrompt('Update item', 'Edit items text:', item.content, function (value) {
+			      //   if (value) {
+			      //     item.content = value;
+			      //     updateTimeline(item);
+			      //     callback(item); // send back adjusted item
+			      //   }
+			      //   else {
+			      //     callback(null); // cancel updating the item
+			      //   }
+			      // });
+
+			      prettyInput('Update start date', 'Edit start date:', item.content, function (value) {
+			      	if ( value){
+			      		item.content = value;
+			      		//updateTimeline(item);
+			      		callback(item);
+
+			      	}else {
 			          callback(null); // cancel updating the item
 			        }
-			      });
+				  });
+				  // var dialogdiv = $("<div></div>");
+				  // dialogdiv.html('<input id="datepicker" type="text" />');
+				  // dialogdiv.appendTo('body');
+
+				  // dialogdiv.dialog().open();
 			    },
 
 			    onRemove: function (item, callback) {
@@ -221,6 +267,15 @@ define([
 			    
 			};
 
+			// Configuration for the Timeline
+			  // var options = {
+				 //  	editable: {
+				 //    add: true,         // add new items by double tapping
+				 //    updateTime: true,  // drag items horizontally
+				 //    updateGroup: true, // drag items from one group to another
+				 //    remove: true       // delete an item by tapping the delete button top right
+				 //  }
+			  // };
 			var container = document.getElementById('visualization');
   
   			var timeline = new vis.Timeline(container, this.model.get('timeline'), options);

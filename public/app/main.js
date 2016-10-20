@@ -13,6 +13,7 @@ require.config({
   },
   paths: {
     jquery: '../assets/js/libs/jquery/jquery-2.0.3-min',
+    "jquery-ui": '../assets/js/libs/jquery/jquery-ui',
     async: '../assets/js/libs/backbone/async',
     underscore: '../assets/js/libs/underscore/underscore-min',
     backbone: '../assets/js/libs/backbone/backbone-min',

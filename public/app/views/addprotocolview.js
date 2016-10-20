@@ -31,6 +31,7 @@ define([
 
 		events: { 
 			'click #addProtocol': "addEntry",
+			'change #coverImage': "processUpload"
 			//'change #coverImage': "processUpload"
 		},
 		
@@ -38,6 +39,12 @@ define([
 		addEntry: function(event){
 			var _this = this;
 			var s = { company: $("#company").val(), protocol: $("#protocol").val()};
+
+			if ( (_this.files && _this.files.length > 0) && _this.files[0].name ){
+				//s = new Service({ title: $("#sname").val(), price: $("#sprice").val(), image: _this.files[0].name});
+				console.log("will be sending a spreadsheet file:", _this.files[0]);
+				s = { company: $("#company").val(), protocol: $("#protocol").val(), spreadsheet: _this.files[0]};
+			}
 			console.log("addEntry in addProtocolview")
 			if ( s.company && s.protocol){
 				dispatcher.trigger("insert",s);
@@ -49,8 +56,36 @@ define([
 			
 			
 			
-		}
+		},
 
+		processUpload: function(e){
+            
+            var fileInput = $("#coverImage");
+            var files = fileInput[0].files;
+            
+
+            this.formData = new FormData();
+            this.files = [];
+
+            for (var i = 0; i < files.length; i++) {
+			  var file = files[i];
+
+			  // Check the file type.
+			  // if (!file.type.match('image.*')) {
+			  //   continue;
+			  // }
+              
+			  // Add the file to the request.
+			  this.files.push(file);
+			  //this.formData.append('file',file);
+			  this.formData.append('photos[]', file, file.name);
+			}
+			var fileField = $("#coverImage");
+			fileField.replaceWith(fileField.val('').clone(true));
+            //this.showPreview(); 
+        },
+
+        
 	});
 	return AddProtocolView;
 
